@@ -46,15 +46,17 @@ public final class FileUtil {
 	/**
 	 * Saves the passed byte array asynchronously to the specified path. 
 	 * Once non-blocking operation completes, a callback is executed.
-	 * Callback function will receive one argument; the result of the write operation.
+	 * Callback function(s) will receive one argument; the result of the write operation.
+	 * If there are multiple callback functions, they will be executed in parallel.
 	 * @param bytes an array of byte to save
 	 * @param path the system path to save the bytes to
-	 * @param callback a function to execute after save completion
+	 * @param callbacks a function to execute after save completion
 	 * @throws IOException 
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	public static final void saveBytesAsync(byte[] bytes, String path, Consumer<Integer> callback) throws IOException, InterruptedException, ExecutionException {
+	@SafeVarargs
+	public static final void saveBytesAsync(byte[] bytes, String path, Consumer<Integer>... callbacks) throws IOException, InterruptedException, ExecutionException {
 		Path file = Paths.get(path);
 		AsynchronousFileChannel asyncFile = AsynchronousFileChannel.open(file, 
 				StandardOpenOption.WRITE,
@@ -66,7 +68,9 @@ public final class FileUtil {
 			try {
 				Integer result = pendingResult.get();
 				asyncFile.close();
-				callback.accept(result);
+				Arrays.stream(callbacks).parallel().forEach((callback) -> {
+					callback.accept(result);
+				});
 			} catch(Exception e) {
 				logger.error("Failed to save file asyncronously in saveBytesAsync()", e);
 			} finally {
@@ -83,16 +87,18 @@ public final class FileUtil {
 	
 	/**
 	 * Reads the file at a specified path asynchronously into a byte array.
-	 * Once non-blocking operation completes, a callback is executed.
-	 * Callback function will receive two arguments; the result of the read operation 
+	 * Once non-blocking operation completes, a callback(s) is executed.
+	 * Callback function(s) will receive two arguments; the result of the read operation 
 	 * and the read byte array.
+	 * If there are multiple callback functions, they will be executed in parallel.
 	 * @param path the system path to read from
-	 * @param callback the callback function to execute after the file is read
+	 * @param callbacks the callback function(s) to execute after the file is read
 	 * @throws IOException
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	public static final void readBytesAsync(String path, BiConsumer<Integer, byte[]> callback) throws IOException, InterruptedException, ExecutionException {
+	@SafeVarargs
+	public static final void readBytesAsync(String path, BiConsumer<Integer, byte[]>... callbacks) throws IOException, InterruptedException, ExecutionException {
 		Path file = Paths.get(path);
 		if(Files.notExists(file)) {
 			IOException e = new IOException("No file at path: " + path);
@@ -111,7 +117,9 @@ public final class FileUtil {
 			try {
 				Integer result = pendingResult.get();
 				asyncFile.close();
-				callback.accept(result, buffer.array());
+				Arrays.stream(callbacks).parallel().forEach((callback) -> {
+					callback.accept(result, buffer.array());
+				});
 			} catch(Exception e) {
 				logger.error("Failed to save file asyncronously in saveBytesAsync()", e);
 			} finally {
@@ -125,7 +133,7 @@ public final class FileUtil {
 			}
 		});
 	}
-	
+
 	public static final void close() {
 		asyncFilePool.shutdown();
 	}
