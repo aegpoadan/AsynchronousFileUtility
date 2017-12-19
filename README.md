@@ -2,8 +2,6 @@
 A collection of functions to make file IO easy in Java and in the style of Javascript. 
 Utilizes Java 8 Streams and lambdas to perform read/writes asynchonously and in parallel.
 
-##Usage
-
 	String test = "Hello world!";
 	byte[] bytesToSave = test.getBytes();
 	
