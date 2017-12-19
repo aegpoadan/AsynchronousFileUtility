@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 public final class ExecutorUtil {
 	@SuppressWarnings("unused")
 	private static final Logger logger;
+	
 	static {
 		logger = LogManager.getLogger(ExecutorUtil.class);;
 	}

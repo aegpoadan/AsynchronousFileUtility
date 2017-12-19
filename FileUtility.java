@@ -29,12 +29,13 @@ import org.apache.log4j.Logger;
  */
 public final class FileUtil {
 	private static final Logger logger;
-	private static final String threadPoolName = "asyncFilePool";
-	private static final ScheduledExecutorService asyncFilePool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+	private static final String threadPoolName;
+	private static final ScheduledExecutorService asyncFilePool;
 	
 	static {
 		logger = LogManager.getLogger(FileUtil.class);
-		FIServletContextListener.addCustomThreadPool(threadPoolName, asyncFilePool);
+		threadPoolName = "asyncFilePool";
+		asyncFilePool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 	}
 	
 	public static final String readFileSync(File file, Charset encoding) throws IOException {
